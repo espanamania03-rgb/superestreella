@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superestrella — Ficha interactiva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rojo: #AD1519;
+    --rojo-oscuro: #7A0C10;
+    --amarillo: #FABD00;
+    --amarillo-suave: #FFE9A8;
+    --crema: #FFFBF2;
+    --negro: #221A15;
+    --gris: #6b5f52;
+    --verde: #2E8B4F;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--crema);
+    color: var(--negro);
+    font-family: 'Karla', sans-serif;
+    line-height:1.5;
+  }
+  .hoja{ max-width: 900px; margin: 0 auto; background: #fff; position: relative; }
+  .deco-layer{ position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .deco-layer > *{ position:absolute; }
+
+  /* ---- decorative music symbols ---- */
+  .nota{ position:absolute; opacity:0.5; }
+
+  header.banda{
+    position: relative;
+    z-index: 1;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--rojo) 0px, var(--rojo) 28px,
+      var(--amarillo) 28px, var(--amarillo) 72px,
+      var(--rojo) 72px, var(--rojo) 100px
+    );
+    padding: 44px 40px 34px;
+    color: #fff;
+    overflow: hidden;
+    display:flex;
+    align-items:center;
+    gap: 26px;
+  }
+  header.banda::after{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 88% 15%, rgba(255,255,255,0.18), transparent 45%);
+  }
+  .avatar{
+    position:relative;
+    flex:0 0 auto;
+    width:96px; height:96px;
+    border-radius:50%;
+    background: var(--negro);
+    display:flex; align-items:center; justify-content:center;
+    border: 4px solid var(--amarillo);
+  }
+  .cabecera-txt{ position:relative; flex:1; min-width:0; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.75rem; letter-spacing:0.14em; text-transform:uppercase; font-weight:700;
+    background: var(--negro); color: var(--amarillo);
+    padding: 6px 14px; border-radius: 999px;
+  }
+  h1.titulo{
+    font-family:'Anton', sans-serif; font-weight:400;
+    font-size: clamp(2.6rem, 7.5vw, 4.6rem);
+    margin: 12px 0 4px; color:#fff;
+    text-shadow: 3px 3px 0 var(--rojo-oscuro);
+    line-height:0.95;
+  }
+  .subtitulo{ font-size:1rem; font-weight:500; margin:0; }
+  .handle{ font-size:0.85rem; font-weight:700; margin:8px 0 0; color: var(--amarillo); letter-spacing:0.03em; }
+
+  main{ padding: 34px 40px 60px; position:relative; z-index:1; }
+  main .nota{ font-size:2.4rem; color: var(--amarillo); }
+
+  .video-card{
+    background: var(--negro);
+    border-radius: 18px;
+    padding: 20px 22px;
+    color:#fff;
+    margin: 0 0 40px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .video-card .icono{
+    flex:0 0 auto; width:56px; height:56px; border-radius:50%;
+    background: var(--rojo); display:flex; align-items:center; justify-content:center;
+  }
+  .video-card .txt{ flex:1; min-width:220px; }
+  .video-card .txt p{ margin:0 0 6px; font-weight:700; }
+  .video-card a.boton{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--amarillo); color: var(--negro);
+    font-weight:700; text-decoration:none;
+    padding: 10px 18px; border-radius: 999px; font-size:0.9rem;
+  }
+  .video-card small{ display:block; margin-top:8px; color:#cfc3aa; font-size:0.76rem; }
+
+  section{ margin-bottom: 50px; position:relative; }
+  .num-eyebrow{ display:flex; align-items:center; gap:12px; margin-bottom: 6px; }
+  .num-circle{
+    flex:0 0 auto; width:38px; height:38px; border-radius:50%;
+    background: var(--rojo); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:'Anton', sans-serif; font-size:1.1rem;
+  }
+  h2{
+    font-family:'Anton', sans-serif; font-weight:400; font-size:1.4rem;
+    color: var(--rojo-oscuro); margin:0; text-transform:uppercase;
+  }
+  .instr{ color: var(--gris); font-size:0.9rem; margin: 0 0 18px 50px; }
+  .contenido{ margin-left:50px; }
+
+  /* ---- Ejercicio 1: emparejar ---- */
+  .match-wrap{ display:grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+  .match-col{ display:flex; flex-direction:column; gap:10px; }
+  .chip{
+    text-align:left;
+    border: 2px solid #e8d8b0; background:#fffaf0;
+    border-radius:10px; padding: 11px 14px; font-size:0.92rem; cursor:pointer;
+    font-family:'Karla',sans-serif; transition: all .15s ease;
+  }
+  .chip:hover{ border-color: var(--amarillo); }
+  .chip.selected{ border-color: var(--rojo); background: var(--amarillo-suave); }
+  .chip.correcto{ border-color: var(--verde); background:#e5f5ea; color: var(--verde); cursor:default; font-weight:700; }
+  .chip.incorrecto{ animation: shake .3s; border-color: var(--rojo); background:#fbe3e3; }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}
+  }
+
+  /* ---- Ejercicio 2: opcion multiple ---- */
+  .mcq{ margin-bottom: 22px; background:#fffaf0; border:1px solid #f1e2b8; border-radius:12px; padding:16px 18px; }
+  .mcq p.pregunta{ margin:0 0 10px; font-weight:700; }
+  .opciones{ display:flex; flex-direction:column; gap:8px; }
+  .opcion{
+    display:flex; align-items:center; gap:10px;
+    border: 2px solid #e8d8b0; border-radius:8px; padding:9px 12px;
+    cursor:pointer; font-size:0.92rem; background:#fff;
+  }
+  .opcion:hover{ border-color: var(--amarillo); }
+  .opcion.marcada{ border-color: var(--rojo); background: var(--amarillo-suave); }
+  .opcion.ok{ border-color: var(--verde); background:#e5f5ea; }
+  .opcion.mal{ border-color: var(--rojo); background:#fbe3e3; }
+  .opcion input{ accent-color: var(--rojo); }
+
+  /* ---- Ejercicio 3: completar ---- */
+  .banco-palabras{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom: 22px; }
+  .word-chip{
+    background: var(--amarillo); color: var(--negro); font-weight:700;
+    padding: 8px 16px; border-radius: 999px; cursor:pointer; font-size:0.88rem;
+    border: 2px solid var(--amarillo);
+  }
+  .word-chip.usada{ background:#eee; color:#aaa; border-color:#eee; cursor:default; }
+  .word-chip.activa{ background: var(--rojo); color:#fff; border-color: var(--rojo); }
+  .frase{ font-size:0.98rem; margin-bottom:14px; }
+  .hueco{
+    display:inline-flex; min-width:120px; justify-content:center;
+    border-bottom: 2.5px solid var(--rojo); padding: 2px 8px; margin: 0 4px;
+    font-weight:700; color: var(--rojo-oscuro); cursor:pointer; background: var(--amarillo-suave);
+    border-radius: 4px 4px 0 0;
+  }
+  .hueco.vacio{ background:none; color: var(--gris); font-weight:400; }
+  .hueco.ok{ background:#e5f5ea; border-color: var(--verde); color: var(--verde); }
+  .hueco.mal{ background:#fbe3e3; border-color: var(--rojo); color: var(--rojo); }
+
+  /* ---- botones de comprobar + resultado ---- */
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--rojo); color:#fff; font-weight:700; border:none;
+    padding: 11px 22px; border-radius: 999px; cursor:pointer; font-size:0.92rem;
+    font-family:'Karla',sans-serif;
+  }
+  .btn:hover{ background: var(--rojo-oscuro); }
+  .resultado{
+    margin-top: 14px; font-weight:700; font-size:0.92rem; min-height: 1.4em;
+  }
+  .resultado.ok{ color: var(--verde); }
+
+  .marcador{
+    position: sticky; top: 12px; z-index: 5;
+    margin: 0 40px 30px auto; width: fit-content;
+    background: var(--negro); color: var(--amarillo);
+    padding: 10px 20px; border-radius: 999px; font-weight:700; font-size:0.9rem;
+    display:flex; align-items:center; gap:8px; float:right;
+  }
+
+  footer{
+    background: repeating-linear-gradient(to right, var(--rojo) 0 40px, var(--amarillo) 40px 80px);
+    height: 10px;
+  }
+  .nota-profe{
+    margin: 10px 40px 0; font-size: 0.76rem; color: var(--gris);
+    border-top: 1px dashed #ddd; padding-top: 14px;
+  }
+
+  @media (max-width: 620px){
+    header.banda{ padding: 30px 22px 26px; flex-direction:column; text-align:center; }
+    main{ padding: 24px 20px 40px; }
+    .instr, .contenido{ margin-left: 0; }
+    .match-wrap{ grid-template-columns: 1fr; }
+    .marcador{ float:none; margin: 0 0 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="hoja">
+
+  <div class="deco-layer" aria-hidden="true">
+    <!-- disco de vinilo -->
+    <svg style="top:60px; right:-30px; opacity:0.16;" width="150" height="150" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="#221A15"/>
+      <circle cx="50" cy="50" r="40" fill="none" stroke="#FABD00" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="32" fill="none" stroke="#FABD00" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="24" fill="none" stroke="#FABD00" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="14" fill="#AD1519"/>
+      <circle cx="50" cy="50" r="3" fill="#FABD00"/>
+    </svg>
+
+    <!-- segundo disco de vinilo, más abajo -->
+    <svg style="top:1520px; left:-40px; opacity:0.12; transform:rotate(15deg);" width="130" height="130" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="48" fill="#221A15"/>
+      <circle cx="50" cy="50" r="38" fill="none" stroke="#FABD00" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="28" fill="none" stroke="#FABD00" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="12" fill="#AD1519"/>
+      <circle cx="50" cy="50" r="3" fill="#FABD00"/>
+    </svg>
+
+    <!-- altavoz izquierdo -->
+    <svg style="top:520px; left:-24px; opacity:0.14;" width="90" height="120" viewBox="0 0 60 80">
+      <rect x="4" y="2" width="52" height="76" rx="8" fill="#221A15"/>
+      <circle cx="30" cy="20" r="9" fill="none" stroke="#FABD00" stroke-width="2"/>
+      <circle cx="30" cy="20" r="3" fill="#FABD00"/>
+      <circle cx="30" cy="52" r="16" fill="none" stroke="#FABD00" stroke-width="2"/>
+      <circle cx="30" cy="52" r="6" fill="#AD1519"/>
+    </svg>
+
+    <!-- altavoz derecho, más abajo -->
+    <svg style="top:2150px; right:-20px; opacity:0.14; transform:rotate(-8deg);" width="80" height="106" viewBox="0 0 60 80">
+      <rect x="4" y="2" width="52" height="76" rx="8" fill="#221A15"/>
+      <circle cx="30" cy="20" r="9" fill="none" stroke="#FABD00" stroke-width="2"/>
+      <circle cx="30" cy="20" r="3" fill="#FABD00"/>
+      <circle cx="30" cy="52" r="16" fill="none" stroke="#FABD00" stroke-width="2"/>
+      <circle cx="30" cy="52" r="6" fill="#AD1519"/>
+    </svg>
+
+    <!-- notas musicales sueltas -->
+    <span style="top:420px; right:34px; font-size:2.2rem; color:var(--amarillo); opacity:0.5;">♪</span>
+    <span style="top:980px; left:10px; font-size:1.8rem; color:var(--rojo); opacity:0.35;">♫</span>
+    <span style="top:1180px; right:60px; font-size:1.5rem; color:var(--amarillo); opacity:0.4;">♩</span>
+    <span style="top:1780px; left:26px; font-size:2rem; color:var(--rojo); opacity:0.3;">♬</span>
+    <span style="top:2450px; right:16px; font-size:1.7rem; color:var(--amarillo); opacity:0.4;">♪</span>
+
+    <!-- confeti -->
+    <span style="top:180px; left:20px; width:8px; height:8px; background:var(--rojo); opacity:0.5; border-radius:2px; transform:rotate(20deg);"></span>
+    <span style="top:250px; left:60px; width:6px; height:6px; background:var(--amarillo); opacity:0.6; border-radius:50%;"></span>
+    <span style="top:320px; right:90px; width:7px; height:7px; background:var(--verde); opacity:0.4; border-radius:2px; transform:rotate(-15deg);"></span>
+    <span style="top:760px; left:44px; width:6px; height:6px; background:var(--rojo); opacity:0.4; border-radius:50%;"></span>
+    <span style="top:900px; right:24px; width:8px; height:8px; background:var(--amarillo); opacity:0.5; border-radius:2px; transform:rotate(40deg);"></span>
+    <span style="top:1350px; left:70px; width:6px; height:6px; background:var(--rojo); opacity:0.45; border-radius:50%;"></span>
+    <span style="top:1620px; right:50px; width:7px; height:7px; background:var(--amarillo); opacity:0.5; border-radius:2px; transform:rotate(-25deg);"></span>
+    <span style="top:2000px; left:16px; width:6px; height:6px; background:var(--verde); opacity:0.4; border-radius:50%;"></span>
+    <span style="top:2300px; right:80px; width:7px; height:7px; background:var(--rojo); opacity:0.45; border-radius:2px; transform:rotate(10deg);"></span>
+  </div>
+
+  <header class="banda">
+    <div class="avatar" aria-hidden="true">
+      <svg width="60" height="60" viewBox="0 0 100 100" fill="none">
+        <path d="M50,8 L60,36.25 L90,37.02 L66.17,55.25 L74.69,83.98 L50,67 L25.31,83.98 L33.83,55.25 L10.05,37.02 L40.01,36.25 Z"
+              fill="#FABD00" stroke="#AD1519" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="cabecera-txt">
+      <span class="eyebrow">★ Ficha interactiva · Español (ELE)</span>
+      <h1 class="titulo">Superestrella</h1>
+      <p class="subtitulo">Aitana — vocabulario, expresiones y traducción al ruso</p>
+      <p class="handle">@espa_mania</p>
+    </div>
+  </header>
+
+  <main>
+    <span class="nota" style="top:20px; right:60px;">♪</span>
+    <span class="nota" style="top:90px; right:10px; font-size:1.6rem;">♫</span>
+
+    <div class="marcador" id="marcador">⭐ 0 / 20</div>
+
+    <div class="video-card">
+      <div class="txt">
+        <p>Escucha la canción antes de empezar los ejercicios</p>
+        <a class="boton" href="https://youtu.be/vz_vU53JvvI" target="_blank" rel="noopener">▶ Ver en YouTube</a>
+        <small>youtu.be/vz_vU53JvvI — se abre en una pestaña nueva.</small>
+      </div>
+    </div>
+
+    <!-- EJERCICIO 1: EMPAREJAR -->
+    <section>
+      <div class="num-eyebrow"><div class="num-circle">1</div><h2>Empareja las palabras</h2></div>
+      <p class="instr">Pulsa una palabra en español y después su traducción en ruso.</p>
+      <div class="contenido match-wrap">
+        <div class="match-col" id="col-es"></div>
+        <div class="match-col" id="col-ru"></div>
+      </div>
+    </section>
+
+    <!-- EJERCICIO 2: OPCION MULTIPLE -->
+    <section>
+      <div class="num-eyebrow"><div class="num-circle">2</div><h2>Elige la opción correcta</h2></div>
+      <p class="instr">Selecciona el significado correcto de cada expresión.</p>
+      <div class="contenido" id="mcq-wrap"></div>
+    </section>
+
+    <!-- EJERCICIO 3: COMPLETAR -->
+    <section>
+      <div class="num-eyebrow"><div class="num-circle">3</div><h2>Completa las frases</h2></div>
+      <p class="instr">Pulsa una palabra del banco y después el hueco donde quieres colocarla. Si te equivocas, pulsa el hueco para devolverla.</p>
+      <div class="contenido">
+        <div class="banco-palabras" id="banco"></div>
+        <div id="frases"></div>
+      </div>
+    </section>
+
+    <!-- EJERCICIO 4: TRADUCCION EXPRES -->
+    <section>
+      <div class="num-eyebrow"><div class="num-circle">4</div><h2>Traducción exprés</h2></div>
+      <p class="instr">Elige la traducción correcta al ruso de cada expresión.</p>
+      <div class="contenido" id="mcq2-wrap"></div>
+    </section>
+
+    <button class="btn" id="btn-comprobar" style="margin-left:50px;">Comprobar todo ✓</button>
+    <div class="resultado contenido" id="resultado"></div>
+
+  </main>
+
+  <p class="nota-profe" style="text-align:center; font-weight:700; letter-spacing:0.04em; color:var(--rojo);">@espa_mania</p>
+  <footer></footer>
+</div>
+
+<script>
+/* ---------------- DATOS ---------------- */
+const vocab = [
+  {es:'la discoteca', ru:'дискотека'},
+  {es:'mirar de reojo', ru:'коситься / смотреть искоса'},
+  {es:'un error', ru:'ошибка'},
+  {es:'la barra', ru:'барная стойка'},
+  {es:'divertirse', ru:'веселиться'},
+  {es:'un rumor', ru:'слух'},
+  {es:'enamorarse', ru:'влюбляться'},
+  {es:'el apellido', ru:'фамилия'},
+  {es:'una mentira', ru:'ложь'},
+  {es:'ser noticia', ru:'стать новостью'}
+];
+
+const mcqData = [
+  { p:"¿Qué significa 'mirar de reojo'?",
+    ops:["Mirar directamente y sin disimulo","Mirar disimuladamente, sin que se note","No mirar en absoluto","Mirar con mucho enfado"], ok:1 },
+  { p:"¿Qué significa 'los rumores vuelan'?",
+    ops:["Los rumores tardan mucho en difundirse","Nadie se entera nunca de los rumores","Las noticias y rumores se difunden muy rápido","Los rumores siempre son falsos"], ok:2 },
+  { p:"Si algo es 'mi próximo error', significa que...",
+    ops:["Es una decisión perfecta y segura","Es probable que sea otro error sentimental, pero la persona lo hace igualmente","Es un error del pasado ya olvidado","No tiene nada que ver con decisiones personales"], ok:1 },
+  { p:"'No es fácil enamorarse de alguien' quiere decir que...",
+    ops:["Enamorarse es instantáneo y sencillo","Cuesta trabajo empezar a sentir amor por otra persona","Es imposible enamorarse nunca","Solo se puede amar a una persona en la vida"], ok:1 },
+  { p:"'Vámonos ya de aquí' es una forma de...",
+    ops:["Pedir quedarse un poco más","Proponer irse de un lugar inmediatamente","Preguntar la hora","Despedirse para siempre"], ok:1 }
+];
+
+const frasesData = [
+  { partes:["Entré en la ", " y todo el mundo se quedó mirando."], resp:"discoteca" },
+  { partes:["Ella habla bajito porque sabe que los ", " vuelan rápido."], resp:"rumores" },
+  { partes:["Prefiero pedir la bebida en la ", "."], resp:"barra" },
+  { partes:["Es difícil ", " de alguien en una sola noche."], resp:"enamorarse" },
+  { partes:["Al día siguiente, la pareja fue ", " en todos los periódicos."], resp:"noticia" },
+  { partes:["Cuando se enamoró, quiso tatuarse su ", "."], resp:"apellido" },
+  { partes:["Prometió no contarle ninguna ", " nunca más."], resp:"mentira" }
+];
+const bancoPalabras = ["discoteca","rumores","barra","enamorarse","noticia","apellido","mentira"]
+  .sort(()=>Math.random()-0.5);
+
+const mcq2Data = [
+  { p:"superestrella",
+    ops:["суперзвезда","звёздная ночь","супергерой","известие"], ok:0 },
+  { p:"quiero divertirme",
+    ops:["я хочу спать","я хочу повеселиться","я хочу работать","я хочу помочь"], ok:1 },
+  { p:"no le importa",
+    ops:["он злится","он забыл","ему всё равно","он опаздывает"], ok:2 },
+  { p:"¿dónde tú has salido?",
+    ops:["куда ты идёшь?","где ты был(а)?","откуда ты пришел/приехал(а)?","когда ты вернёшься?"], ok:2 },
+  { p:"toda para ti",
+    ops:["только для меня","навсегда одна","не для тебя","вся твоя"], ok:3 }
+];
+
+let score = 0;
+const totalPuntos = vocab.length + mcqData.length + frasesData.length + mcq2Data.length;
+
+/* ---------------- MARCADOR ---------------- */
+function actualizarMarcador(){
+  document.getElementById('marcador').textContent = `⭐ ${score} / ${totalPuntos}`;
+}
+
+/* ---------------- EJERCICIO 1: EMPAREJAR ---------------- */
+const colEs = document.getElementById('col-es');
+const colRu = document.getElementById('col-ru');
+const ruShuffled = [...vocab].sort(()=>Math.random()-0.5);
+
+let selEs = null, selRu = null;
+const matched = new Set();
+
+vocab.forEach((item,i)=>{
+  const b = document.createElement('button');
+  b.className='chip'; b.textContent=item.es; b.dataset.es=item.es;
+  b.addEventListener('click',()=>{
+    if(b.classList.contains('correcto')) return;
+    document.querySelectorAll('#col-es .chip').forEach(c=>c.classList.remove('selected'));
+    b.classList.add('selected'); selEs=item.es;
+    intentarEmparejar();
+  });
+  colEs.appendChild(b);
+});
+
+ruShuffled.forEach((item)=>{
+  const b = document.createElement('button');
+  b.className='chip'; b.textContent=item.ru; b.dataset.ru=item.ru;
+  b.addEventListener('click',()=>{
+    if(b.classList.contains('correcto')) return;
+    document.querySelectorAll('#col-ru .chip').forEach(c=>c.classList.remove('selected'));
+    b.classList.add('selected'); selRu=item.ru;
+    intentarEmparejar();
+  });
+  colRu.appendChild(b);
+});
+
+function intentarEmparejar(){
+  if(selEs===null||selRu===null) return;
+  const parEsperado = vocab.find(v=>v.es===selEs);
+  const esBtn = [...colEs.children].find(c=>c.dataset.es===selEs);
+  const ruBtn = [...colRu.children].find(c=>c.dataset.ru===selRu);
+  if(parEsperado.ru===selRu){
+    esBtn.classList.remove('selected'); esBtn.classList.add('correcto');
+    ruBtn.classList.remove('selected'); ruBtn.classList.add('correcto');
+    matched.add(selEs);
+    score++; actualizarMarcador();
+  } else {
+    esBtn.classList.add('incorrecto'); ruBtn.classList.add('incorrecto');
+    setTimeout(()=>{
+      esBtn.classList.remove('selected','incorrecto');
+      ruBtn.classList.remove('selected','incorrecto');
+    },450);
+  }
+  selEs=null; selRu=null;
+}
+
+/* ---------------- EJERCICIO 2: OPCION MULTIPLE ---------------- */
+const mcqWrap = document.getElementById('mcq-wrap');
+const respuestasMcq = {};
+
+mcqData.forEach((q,qi)=>{
+  const div = document.createElement('div'); div.className='mcq';
+  const p = document.createElement('p'); p.className='pregunta'; p.textContent=`${qi+1}. ${q.p}`;
+  div.appendChild(p);
+  const opsWrap = document.createElement('div'); opsWrap.className='opciones';
+  q.ops.forEach((op,oi)=>{
+    const label = document.createElement('label'); label.className='opcion';
+    label.innerHTML = `<input type="radio" name="mcq${qi}"> <span>${op}</span>`;
+    label.addEventListener('click', ()=>{
+      opsWrap.querySelectorAll('.opcion').forEach(o=>o.classList.remove('marcada'));
+      label.classList.add('marcada');
+      respuestasMcq[qi]=oi;
+    });
+    opsWrap.appendChild(label);
+  });
+  div.appendChild(opsWrap);
+  mcqWrap.appendChild(div);
+});
+
+/* ---------------- EJERCICIO 4: TRADUCCION EXPRES ---------------- */
+const mcq2Wrap = document.getElementById('mcq2-wrap');
+const respuestasMcq2 = {};
+
+mcq2Data.forEach((q,qi)=>{
+  const div = document.createElement('div'); div.className='mcq';
+  const p = document.createElement('p'); p.className='pregunta'; p.textContent=`${qi+1}. "${q.p}"`;
+  div.appendChild(p);
+  const opsWrap = document.createElement('div'); opsWrap.className='opciones';
+  q.ops.forEach((op,oi)=>{
+    const label = document.createElement('label'); label.className='opcion';
+    label.innerHTML = `<input type="radio" name="mcq2_${qi}"> <span>${op}</span>`;
+    label.addEventListener('click', ()=>{
+      opsWrap.querySelectorAll('.opcion').forEach(o=>o.classList.remove('marcada'));
+      label.classList.add('marcada');
+      respuestasMcq2[qi]=oi;
+    });
+    opsWrap.appendChild(label);
+  });
+  div.appendChild(opsWrap);
+  mcq2Wrap.appendChild(div);
+});
+
+/* ---------------- EJERCICIO 3: COMPLETAR ---------------- */
+const bancoDiv = document.getElementById('banco');
+const frasesDiv = document.getElementById('frases');
+let chipActivo = null;
+const huecosState = frasesData.map(()=>null);
+
+bancoPalabras.forEach(palabra=>{
+  const chip = document.createElement('button');
+  chip.className='word-chip'; chip.textContent=palabra; chip.dataset.palabra=palabra;
+  chip.addEventListener('click', ()=>{
+    if(chip.classList.contains('usada')) return;
+    document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('activa'));
+    chip.classList.add('activa');
+    chipActivo = palabra;
+  });
+  bancoDiv.appendChild(chip);
+});
+
+frasesData.forEach((f,fi)=>{
+  const p = document.createElement('p'); p.className='frase';
+  p.innerHTML = `${fi+1}. ${f.partes[0]}`;
+  const hueco = document.createElement('span');
+  hueco.className='hueco vacio'; hueco.textContent='______';
+  hueco.dataset.index = fi;
+  hueco.addEventListener('click', ()=>{
+    if(huecosState[fi]){
+      // devolver palabra al banco
+      const chip = document.querySelector(`.word-chip[data-palabra="${huecosState[fi]}"]`);
+      if(chip) chip.classList.remove('usada');
+      huecosState[fi] = null;
+      hueco.textContent='______'; hueco.className='hueco vacio';
+      return;
+    }
+    if(chipActivo){
+      huecosState[fi] = chipActivo;
+      hueco.textContent = chipActivo;
+      hueco.className='hueco';
+      const chip = document.querySelector(`.word-chip[data-palabra="${chipActivo}"]`);
+      if(chip) chip.classList.add('usada');
+      chipActivo = null;
+      document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('activa'));
+    }
+  });
+  p.appendChild(hueco);
+  const span2 = document.createElement('span'); span2.textContent=f.partes[1];
+  p.appendChild(span2);
+  frasesDiv.appendChild(p);
+});
+
+/* ---------------- COMPROBAR TODO ---------------- */
+document.getElementById('btn-comprobar').addEventListener('click', ()=>{
+  let extraOk = 0;
+
+  // MCQ check
+  mcqData.forEach((q,qi)=>{
+    const opsWrap = mcqWrap.children[qi].querySelector('.opciones');
+    [...opsWrap.children].forEach((label,oi)=>{
+      label.classList.remove('ok','mal');
+      if(oi===q.ok) label.classList.add('ok');
+      else if(respuestasMcq[qi]===oi) label.classList.add('mal');
+    });
+    if(respuestasMcq[qi]===q.ok) extraOk++;
+  });
+
+  // Frases check
+  let frasesOk = 0;
+  frasesData.forEach((f,fi)=>{
+    const hueco = document.querySelector(`.hueco[data-index="${fi}"]`);
+    hueco.classList.remove('ok','mal');
+    if(huecosState[fi]===f.resp){ hueco.classList.add('ok'); frasesOk++; }
+    else if(huecosState[fi]){ hueco.classList.add('mal'); }
+  });
+
+  // MCQ2 check
+  let extraOk2 = 0;
+  mcq2Data.forEach((q,qi)=>{
+    const opsWrap = mcq2Wrap.children[qi].querySelector('.opciones');
+    [...opsWrap.children].forEach((label,oi)=>{
+      label.classList.remove('ok','mal');
+      if(oi===q.ok) label.classList.add('ok');
+      else if(respuestasMcq2[qi]===oi) label.classList.add('mal');
+    });
+    if(respuestasMcq2[qi]===q.ok) extraOk2++;
+  });
+
+  score = matched.size + extraOk + frasesOk + extraOk2;
+  actualizarMarcador();
+
+  const resultado = document.getElementById('resultado');
+  resultado.textContent = `Resultado: ${score} / ${totalPuntos} puntos. ¡Revisa en verde y rojo tus respuestas arriba!`;
+  resultado.classList.toggle('ok', score===totalPuntos);
+});
+</script>
+</body>
+</html>
